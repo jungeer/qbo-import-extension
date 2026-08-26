@@ -31,6 +31,9 @@
     if (existing) {
       existing.remove();
       document.documentElement.removeAttribute(HOST_ATTR);
+      document.getElementById("qbo-import-fx-root")?.remove();
+      document.documentElement.removeAttribute("data-qbo-import-running");
+      document.querySelectorAll(".qbo-ih-fx-spot").forEach((node) => node.remove());
       return;
     }
     mountPanel();
@@ -195,7 +198,11 @@
     stopBtn.disabled = !running;
     clearBtn.disabled = running || items.length === 0;
     pick.classList.toggle("is-disabled", running);
+    panel.classList.toggle("is-running", running);
     panel.querySelector('[data-role="file-input"]').disabled = running;
+
+    const active = panel.querySelector(".qbo-ih-item--importing");
+    if (active) active.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
 
   function setError(message) {

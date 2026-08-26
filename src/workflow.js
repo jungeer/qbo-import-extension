@@ -15,29 +15,35 @@
    */
   async function runImportQueue(options) {
     const { files, onFileStatus, onError, onRunningChange, shouldStop } = options;
-    const { SELECTORS, TIMEOUTS, dom } = root;
+    const { SELECTORS, TIMEOUTS, dom, fx } = root;
 
+    let outcome = "idle";
     onRunningChange(true);
     onError(null);
+    fx?.start?.(files.length);
 
     try {
       for (let i = 0; i < files.length; i++) {
         if (shouldStop()) {
           onError("已停止导入");
+          outcome = "stopped";
           break;
         }
 
         const file = files[i];
         onFileStatus(i, "importing");
+        fx?.onFileStart?.(file.name, i, files.length);
 
         try {
-          await importOneFile(file, SELECTORS, TIMEOUTS, dom);
+          await importOneFile(file, SELECTORS, TIMEOUTS, dom, fx);
           onFileStatus(i, "done");
+          fx?.onFileDone?.(file.name);
         } catch (err) {
           const message = err?.message || String(err);
           onFileStatus(i, "error", message);
           onError(`文件「${file.name}」导入失败：${message}`);
-          // 遇错停止后续，避免误操作页面
+          fx?.onFileError?.(file.name);
+          outcome = "error";
           break;
         }
 
@@ -45,17 +51,24 @@
           await dom.sleep(TIMEOUTS.betweenFiles);
         }
       }
+
+      if (outcome === "idle") {
+        const allDone = files.length > 0;
+        outcome = allDone ? "done" : "idle";
+      }
     } finally {
+      fx?.stop?.(outcome);
       onRunningChange(false);
     }
   }
 
-  async function importOneFile(file, SELECTORS, TIMEOUTS, dom) {
+  async function importOneFile(file, SELECTORS, TIMEOUTS, dom, fx) {
     // 1) 点击导入按钮（占位）
     const importBtn = await dom.waitForElement(
       SELECTORS.importButton,
       TIMEOUTS.waitForElement
     );
+    await fx?.spotlight?.(importBtn, `点击导入 · ${file.name}`);
     dom.clickElement(importBtn);
 
     // 2) 找到 file input 并写入当前文件（占位）
@@ -63,6 +76,8 @@
       SELECTORS.fileInput,
       TIMEOUTS.waitForElement
     );
+    fx?.setStatus?.(`写入文件 · ${file.name}`, "run");
+    await fx?.spotlight?.(fileInput, "选择文件", 360);
     dom.assignFileToInput(fileInput, file);
 
     // 3) 等待导入阶段成功（若页面有成功态；没有配置成功选择器则短暂等待）
@@ -83,9 +98,13 @@
           SELECTORS.saveButton,
           TIMEOUTS.waitForElement
         );
+        await fx?.spotlight?.(saveBtn, `点击保存 · ${file.name}`);
         dom.clickElement(saveBtn);
+        fx?.setStatus?.(`等待保存结果 · ${file.name}`, "run");
       },
     });
+
+    fx?.clearSpot?.();
   }
 
   root.workflow = { runImportQueue };

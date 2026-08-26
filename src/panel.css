@@ -325,6 +325,303 @@ html[data-qbo-import-helper="open"] {
   font-size: 10px;
 }
 
+/* —— 列表状态动效 —— */
+.qbo-ih-item {
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.qbo-ih-item--importing {
+  animation: qbo-ih-item-pulse 1.2s ease-in-out infinite;
+}
+
+.qbo-ih-item--done {
+  animation: qbo-ih-item-settle 0.45s ease;
+}
+
+.qbo-ih-item--error {
+  animation: qbo-ih-item-shake 0.45s ease;
+}
+
+#qbo-import-helper-panel.is-running .qbo-ih-mark {
+  animation: qbo-ih-mark-spin 1.8s linear infinite;
+}
+
+@keyframes qbo-ih-item-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(181, 71, 8, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(181, 71, 8, 0);
+  }
+}
+
+@keyframes qbo-ih-item-settle {
+  from {
+    transform: translateX(6px);
+    opacity: 0.55;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes qbo-ih-item-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes qbo-ih-mark-spin {
+  from {
+    filter: hue-rotate(0deg);
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.06);
+  }
+  to {
+    filter: hue-rotate(25deg);
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+/* —— 页面级执行特效 —— */
+#qbo-import-fx-root {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 2147483645;
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+
+#qbo-import-fx-root.is-active {
+  opacity: 1;
+}
+
+.qbo-ih-fx-veil {
+  position: absolute;
+  inset: 0;
+  right: var(--qbo-ih-width, 360px);
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 18%, rgba(46, 125, 50, 0.14), transparent 60%),
+    linear-gradient(180deg, rgba(26, 46, 28, 0.1), rgba(26, 46, 28, 0.02) 45%, rgba(26, 46, 28, 0.08));
+}
+
+.qbo-ih-fx-scan {
+  position: absolute;
+  left: 0;
+  right: var(--qbo-ih-width, 360px);
+  top: -20%;
+  height: 28%;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(255, 255, 255, 0.18),
+    transparent
+  );
+  animation: qbo-ih-scan 2.8s ease-in-out infinite;
+}
+
+.qbo-ih-fx-beacon {
+  position: absolute;
+  left: 50%;
+  top: 28px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(520px, calc(100vw - var(--qbo-ih-width, 360px) - 48px));
+  padding: 10px 16px 10px 12px;
+  border: 1px solid rgba(213, 227, 215, 0.9);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #1a2e1c;
+  box-shadow: 0 12px 32px rgba(26, 46, 28, 0.16);
+  backdrop-filter: blur(8px);
+  font-family: var(--qbo-ih-font);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.qbo-ih-fx-beacon.is-pop {
+  animation: qbo-ih-beacon-pop 0.35s ease;
+}
+
+.qbo-ih-fx-beacon[data-tone="done"] {
+  border-color: #abefc6;
+  color: #027a48;
+}
+
+.qbo-ih-fx-beacon[data-tone="error"] {
+  border-color: #fecdca;
+  color: #b42318;
+}
+
+.qbo-ih-fx-beacon-pulse {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #2e7d32;
+  box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.45);
+  animation: qbo-ih-beacon-dot 1.2s ease-out infinite;
+}
+
+.qbo-ih-fx-beacon[data-tone="done"] .qbo-ih-fx-beacon-pulse {
+  background: #027a48;
+  animation: none;
+}
+
+.qbo-ih-fx-beacon[data-tone="error"] .qbo-ih-fx-beacon-pulse {
+  background: #b42318;
+  animation: none;
+}
+
+.qbo-ih-fx-beacon-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qbo-ih-fx-burst {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.2);
+  opacity: 0;
+}
+
+.qbo-ih-fx-burst.is-fire {
+  animation: qbo-ih-burst 0.65s ease-out forwards;
+}
+
+.qbo-ih-fx-burst[data-kind="done"] {
+  background: rgba(2, 122, 72, 0.35);
+  box-shadow: 0 0 0 0 rgba(2, 122, 72, 0.25);
+}
+
+.qbo-ih-fx-burst[data-kind="error"] {
+  background: rgba(180, 35, 24, 0.3);
+  box-shadow: 0 0 0 0 rgba(180, 35, 24, 0.2);
+}
+
+.qbo-ih-fx-spot {
+  position: fixed;
+  z-index: 2147483645;
+  border: 2px solid #2e7d32;
+  border-radius: 12px;
+  background: rgba(46, 125, 50, 0.08);
+  box-shadow:
+    0 0 0 9999px rgba(26, 46, 28, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+  pointer-events: none;
+  animation: qbo-ih-spot-in 0.28s ease;
+}
+
+.qbo-ih-fx-spot-tip {
+  position: absolute;
+  left: 0;
+  top: -28px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #1b5e20;
+  color: #fff;
+  font-family: var(--qbo-ih-font);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(27, 94, 32, 0.28);
+}
+
+.qbo-ih-fx-target {
+  outline: 2px solid rgba(46, 125, 50, 0.55) !important;
+  outline-offset: 3px !important;
+  transition: outline-color 0.2s ease;
+}
+
+@keyframes qbo-ih-scan {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.9;
+  }
+  88% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translateY(360%);
+    opacity: 0;
+  }
+}
+
+@keyframes qbo-ih-beacon-pop {
+  from {
+    transform: translateX(-50%) translateY(-6px) scale(0.96);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes qbo-ih-beacon-dot {
+  0% {
+    box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(46, 125, 50, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(46, 125, 50, 0);
+  }
+}
+
+@keyframes qbo-ih-burst {
+  0% {
+    transform: translate(-50%, -50%) scale(0.2);
+    opacity: 0.75;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(18);
+    opacity: 0;
+  }
+}
+
+@keyframes qbo-ih-spot-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+html[data-qbo-import-running="1"] body {
+  cursor: progress;
+}
+
 @media (max-width: 720px) {
   :root {
     --qbo-ih-width: min(100vw, 360px);
@@ -332,5 +629,34 @@ html[data-qbo-import-helper="open"] {
 
   html[data-qbo-import-helper="open"] {
     margin-right: 0 !important;
+  }
+
+  .qbo-ih-fx-veil,
+  .qbo-ih-fx-scan {
+    right: 0;
+  }
+
+  .qbo-ih-fx-beacon {
+    max-width: calc(100vw - 24px);
+    top: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qbo-ih-fx-scan,
+  .qbo-ih-item--importing,
+  #qbo-import-helper-panel.is-running .qbo-ih-mark,
+  .qbo-ih-fx-beacon-pulse,
+  .qbo-ih-fx-burst.is-fire,
+  .qbo-ih-fx-beacon.is-pop,
+  .qbo-ih-item--done,
+  .qbo-ih-item--error {
+    animation: none !important;
+  }
+
+  #qbo-import-fx-root,
+  .qbo-ih-item,
+  .qbo-ih-fx-spot {
+    transition: none !important;
   }
 }
