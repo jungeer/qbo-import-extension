@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QBO 导入助手 · 本地演示页</title>
+    <link rel="stylesheet" href="../src/panel.css" />
+    <style>
+      body {
+        margin: 0;
+        font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        color: #1a2e1c;
+        background:
+          linear-gradient(180deg, #f3f7f4 0%, #e8efe9 100%);
+        min-height: 100vh;
+      }
+      .demo-shell {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 40px 24px 80px;
+      }
+      .demo-brand {
+        font-size: 28px;
+        font-weight: 750;
+        margin: 0 0 8px;
+      }
+      .demo-lead {
+        margin: 0 0 28px;
+        color: #5c735f;
+      }
+      .demo-card {
+        background: #fff;
+        border: 1px solid #d5e3d7;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(26, 46, 28, 0.06);
+      }
+      .demo-card h2 {
+        margin: 0 0 12px;
+        font-size: 16px;
+      }
+      .demo-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .demo-btn {
+        height: 38px;
+        padding: 0 14px;
+        border-radius: 10px;
+        border: 1px solid #c9dbc9;
+        background: #fff;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .demo-btn.primary {
+        background: #2e7d32;
+        border-color: transparent;
+        color: #fff;
+      }
+      .demo-log {
+        margin: 0;
+        padding: 12px;
+        border-radius: 10px;
+        background: #f7faf7;
+        border: 1px solid #d5e3d7;
+        min-height: 72px;
+        white-space: pre-wrap;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 12px;
+      }
+      .demo-success,
+      .demo-error {
+        margin-top: 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        display: none;
+      }
+      .demo-success {
+        background: #ecfdf3;
+        border: 1px solid #abefc6;
+        color: #027a48;
+      }
+      .demo-error {
+        background: #fef3f2;
+        border: 1px solid #fecdca;
+        color: #b42318;
+      }
+      .demo-success.is-on,
+      .demo-error.is-on {
+        display: block;
+      }
+      .open-panel {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        z-index: 10;
+        height: 44px;
+        padding: 0 18px;
+        border: 0;
+        border-radius: 999px;
+        background: #1b5e20;
+        color: #fff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 10px 24px rgba(27, 94, 32, 0.28);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="demo-shell">
+      <p class="demo-brand">QuickBooks Online（模拟页）</p>
+      <p class="demo-lead">
+        此页用占位属性模拟 QBO 的导入/保存按钮，便于在未拿到真实选择器前验证插件流程。
+      </p>
+
+      <div class="demo-card">
+        <h2>导入区域（占位元素）</h2>
+        <div class="demo-row">
+          <button
+            type="button"
+            class="demo-btn primary"
+            data-qbo-import="import-button"
+          >
+            导入文件
+          </button>
+          <button type="button" class="demo-btn" data-qbo-import="save-button" disabled>
+            保存
+          </button>
+          <button type="button" class="demo-btn" id="fail-next">
+            下次保存故意失败
+          </button>
+        </div>
+
+        <input
+          type="file"
+          data-qbo-import="file-input"
+          style="display: block; margin-bottom: 12px"
+        />
+
+        <pre class="demo-log" id="log">等待操作…</pre>
+        <div class="demo-success" data-qbo-import="success" id="success">
+          保存成功
+        </div>
+        <div class="demo-error" data-qbo-import="error" id="error">
+          保存失败：模拟错误
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="open-panel" id="open-panel">打开导入助手</button>
+
+    <script src="../src/selectors.js"></script>
+    <script src="../src/dom.js"></script>
+    <script src="../src/workflow.js"></script>
+    <script>
+      // 演示页：补齐 content.js 依赖的 chrome.runtime（Chromium 可能已有残缺 chrome 对象）
+      (function ensureChromeRuntimeShim() {
+        const root = (window.chrome = window.chrome || {});
+        const runtime = (root.runtime = root.runtime || {});
+        if (!runtime.onMessage) {
+          runtime.onMessage = { addListener() {}, removeListener() {} };
+        }
+        runtime.getURL = function getURL(path) {
+          return new URL("../" + path, location.href).href;
+        };
+      })();
+    </script>
+    <script src="../src/content.js"></script>
+    <script>
+      const logEl = document.getElementById("log");
+      const successEl = document.getElementById("success");
+      const errorEl = document.getElementById("error");
+      const importBtn = document.querySelector('[data-qbo-import="import-button"]');
+      const saveBtn = document.querySelector('[data-qbo-import="save-button"]');
+      const fileInput = document.querySelector('[data-qbo-import="file-input"]');
+      let failNext = false;
+      let lastFileName = "";
+
+      function log(msg) {
+        const line = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        logEl.textContent = logEl.textContent === "等待操作…" ? line : logEl.textContent + "\n" + line;
+      }
+
+      function hideOutcomes() {
+        successEl.classList.remove("is-on");
+        errorEl.classList.remove("is-on");
+      }
+
+      importBtn.addEventListener("click", () => {
+        hideOutcomes();
+        log("已点击导入按钮");
+        saveBtn.disabled = false;
+      });
+
+      fileInput.addEventListener("change", () => {
+        const file = fileInput.files && fileInput.files[0];
+        lastFileName = file ? file.name : "";
+        log(file ? `已选择文件: ${file.name}` : "文件已清空");
+        saveBtn.disabled = !file;
+      });
+
+      saveBtn.addEventListener("click", () => {
+        hideOutcomes();
+        if (!lastFileName && !(fileInput.files && fileInput.files[0])) {
+          errorEl.textContent = "保存失败：尚未选择文件";
+          errorEl.classList.add("is-on");
+          log("保存失败：尚未选择文件");
+          return;
+        }
+        const name = lastFileName || fileInput.files[0].name;
+        if (failNext) {
+          failNext = false;
+          errorEl.textContent = `保存失败：模拟错误（${name}）`;
+          errorEl.classList.add("is-on");
+          log(`保存失败: ${name}`);
+          return;
+        }
+        successEl.textContent = `保存成功：${name}`;
+        successEl.classList.add("is-on");
+        log(`保存成功: ${name}`);
+        saveBtn.disabled = true;
+        fileInput.value = "";
+        lastFileName = "";
+      });
+
+      document.getElementById("fail-next").addEventListener("click", () => {
+        failNext = true;
+        log("已设置：下一次保存将失败");
+      });
+
+      document.getElementById("open-panel").addEventListener("click", () => {
+        window.__QBO_IMPORT__.togglePanel();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,336 @@
+:root {
+  --qbo-ih-width: 360px;
+  --qbo-ih-bg: #f7faf7;
+  --qbo-ih-surface: #ffffff;
+  --qbo-ih-ink: #1a2e1c;
+  --qbo-ih-muted: #5c735f;
+  --qbo-ih-line: #d5e3d7;
+  --qbo-ih-accent: #2e7d32;
+  --qbo-ih-accent-ink: #ffffff;
+  --qbo-ih-warn: #b42318;
+  --qbo-ih-warn-bg: #fef3f2;
+  --qbo-ih-done: #027a48;
+  --qbo-ih-done-bg: #ecfdf3;
+  --qbo-ih-run: #b54708;
+  --qbo-ih-run-bg: #fffaeb;
+  --qbo-ih-shadow: -12px 0 40px rgba(26, 46, 28, 0.12);
+  --qbo-ih-font: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+html[data-qbo-import-helper="open"] {
+  margin-right: var(--qbo-ih-width) !important;
+  transition: margin-right 0.22s ease;
+}
+
+#qbo-import-helper-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 2147483646;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: var(--qbo-ih-width);
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  color: var(--qbo-ih-ink);
+  font-family: var(--qbo-ih-font);
+  font-size: 14px;
+  line-height: 1.45;
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(46, 125, 50, 0.12), transparent 55%),
+    linear-gradient(180deg, #eef6ef 0%, var(--qbo-ih-bg) 40%, #f4f7f4 100%);
+  border-left: 1px solid var(--qbo-ih-line);
+  box-shadow: var(--qbo-ih-shadow);
+  animation: qbo-ih-slide-in 0.22s ease;
+}
+
+@keyframes qbo-ih-slide-in {
+  from {
+    transform: translateX(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+#qbo-import-helper-panel *,
+#qbo-import-helper-panel *::before,
+#qbo-import-helper-panel *::after {
+  box-sizing: border-box;
+}
+
+.qbo-ih-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 16px 12px;
+}
+
+.qbo-ih-brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+}
+
+.qbo-ih-mark {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background:
+    linear-gradient(145deg, #43a047 0%, #2e7d32 55%, #1b5e20 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.qbo-ih-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.qbo-ih-sub {
+  margin: 2px 0 0;
+  color: var(--qbo-ih-muted);
+  font-size: 12px;
+}
+
+.qbo-ih-icon-btn {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--qbo-ih-muted);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.qbo-ih-icon-btn:hover {
+  background: rgba(26, 46, 28, 0.06);
+  color: var(--qbo-ih-ink);
+}
+
+.qbo-ih-section {
+  padding: 8px 16px 12px;
+}
+
+.qbo-ih-file-pick {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px dashed #9bbb9e;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.qbo-ih-file-pick:hover {
+  border-color: var(--qbo-ih-accent);
+  background: #fff;
+}
+
+.qbo-ih-file-pick.is-disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.qbo-ih-file-pick-btn {
+  color: var(--qbo-ih-accent);
+  font-weight: 650;
+}
+
+.qbo-ih-file-pick-hint {
+  color: var(--qbo-ih-muted);
+  font-size: 12px;
+}
+
+.qbo-ih-list-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.qbo-ih-list-head h2,
+.qbo-ih-error-section h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: var(--qbo-ih-muted);
+}
+
+.qbo-ih-list-head span {
+  color: var(--qbo-ih-muted);
+  font-size: 12px;
+}
+
+.qbo-ih-list-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.qbo-ih-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  display: grid;
+  gap: 8px;
+  max-height: 100%;
+}
+
+.qbo-ih-empty {
+  margin: 8px 0 0;
+  color: var(--qbo-ih-muted);
+  font-size: 13px;
+}
+
+.qbo-ih-item {
+  padding: 10px 12px;
+  border: 1px solid var(--qbo-ih-line);
+  border-radius: 10px;
+  background: var(--qbo-ih-surface);
+}
+
+.qbo-ih-item-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.qbo-ih-item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.qbo-ih-item-meta {
+  margin-top: 4px;
+  color: var(--qbo-ih-muted);
+  font-size: 12px;
+}
+
+.qbo-ih-badge {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 650;
+  background: #eef2ee;
+  color: var(--qbo-ih-muted);
+}
+
+.qbo-ih-item--importing .qbo-ih-badge {
+  background: var(--qbo-ih-run-bg);
+  color: var(--qbo-ih-run);
+}
+
+.qbo-ih-item--done {
+  border-color: #abefc6;
+  background: var(--qbo-ih-done-bg);
+}
+
+.qbo-ih-item--done .qbo-ih-badge {
+  background: #dcfae6;
+  color: var(--qbo-ih-done);
+}
+
+.qbo-ih-item--error {
+  border-color: #fecdca;
+  background: var(--qbo-ih-warn-bg);
+}
+
+.qbo-ih-item--error .qbo-ih-badge {
+  background: #fee4e2;
+  color: var(--qbo-ih-warn);
+}
+
+.qbo-ih-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.qbo-ih-btn {
+  height: 36px;
+  border: 1px solid var(--qbo-ih-line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--qbo-ih-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.qbo-ih-btn:hover:not(:disabled) {
+  background: #f3f8f3;
+}
+
+.qbo-ih-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.qbo-ih-btn-primary {
+  border-color: transparent;
+  background: var(--qbo-ih-accent);
+  color: var(--qbo-ih-accent-ink);
+}
+
+.qbo-ih-btn-primary:hover:not(:disabled) {
+  background: #256b29;
+}
+
+.qbo-ih-error-section {
+  padding-top: 0;
+}
+
+.qbo-ih-error {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #fecdca;
+  border-radius: 10px;
+  background: var(--qbo-ih-warn-bg);
+  color: var(--qbo-ih-warn);
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.qbo-ih-footer {
+  padding: 8px 16px 16px;
+  color: var(--qbo-ih-muted);
+  font-size: 11px;
+}
+
+.qbo-ih-footer code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+}
+
+@media (max-width: 720px) {
+  :root {
+    --qbo-ih-width: min(100vw, 360px);
+  }
+
+  html[data-qbo-import-helper="open"] {
+    margin-right: 0 !important;
+  }
+}
