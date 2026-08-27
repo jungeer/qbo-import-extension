@@ -121,7 +121,7 @@ html[data-qbo-import-helper="open"] {
 }
 
 .qbo-ih-tab-panel[data-tab-panel="config"] {
-  overflow: auto;
+  overflow: hidden;
 }
 
 .qbo-ih-brand {
@@ -432,7 +432,30 @@ html[data-qbo-import-helper="open"] {
 
 .qbo-ih-config-section {
   padding-top: 4px;
-  padding-bottom: 16px;
+  padding-bottom: 12px;
+}
+
+.qbo-ih-config-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.qbo-ih-config-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.qbo-ih-config-footer {
+  flex: 0 0 auto;
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--qbo-ih-line);
+  background:
+    linear-gradient(180deg, rgba(247, 250, 247, 0.92), rgba(244, 247, 244, 0.98));
+  box-shadow: 0 -6px 16px rgba(26, 46, 28, 0.06);
 }
 
 .qbo-ih-config-intro {
@@ -500,11 +523,10 @@ html[data-qbo-import-helper="open"] {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-top: 4px;
 }
 
 .qbo-ih-config-status {
-  margin: 8px 0 0;
+  margin: 0 0 8px;
   padding: 8px 10px;
   border-radius: 8px;
   font-size: 12px;
