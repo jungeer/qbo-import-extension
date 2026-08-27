@@ -23,9 +23,13 @@
     /**
      * 保存成功提示选择器。
      * 留空：固定等待 TIMEOUTS.waitAfterSave（默认 6s）。
+     * QBO 成功 toast 常见为 role=alert，文案含 "saved"。
      */
     saveSuccessIndicator: "",
-    /** 页面错误 toast/banner（待你补充具体选择器） */
+    /**
+     * 页面错误 toast/banner。
+     * 注意：QBO 成功 toast 也可能是 role=alert，workflow 会按文案过滤，避免把 "saved" 当成失败。
+     */
     errorIndicator: '[role="alert"], .idsTSBanner, [data-testid*="error"]',
     /** QBO 币种 combobox（非原生 select） */
     currencyTrigger: '[data-testid="currency-type"]',

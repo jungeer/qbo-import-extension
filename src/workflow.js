@@ -17,6 +17,28 @@
     return exts.some((ext) => lower.endsWith(String(ext).toLowerCase()));
   }
 
+  /** QBO 成功 toast 文案如 "Journal Entry 3422 saved" */
+  function looksLikeSaveSuccess(text) {
+    const t = String(text || "").replace(/\s+/g, " ").trim();
+    if (!t) return false;
+    return /\bsaved\b/i.test(t) && !/\b(error|failed|unable|invalid)\b/i.test(t);
+  }
+
+  /** 规范化 toast 文案，去掉 Close 按钮粘连 */
+  function normalizeToastText(text) {
+    return String(text || "")
+      .replace(/\s+/g, " ")
+      .replace(/\bClose\b/gi, "")
+      .trim();
+  }
+
+  function readVisibleMessage(dom, selector) {
+    if (!selector) return "";
+    const el = dom.query(selector);
+    if (!el || !dom.isVisible(el)) return "";
+    return normalizeToastText(el.textContent || "");
+  }
+
   async function runImportQueue(options) {
     const { files, onFileStatus, onError, onRunningChange, shouldStop } = options;
     const { SELECTORS, TIMEOUTS, RULES, dom, fx } = root;
@@ -122,11 +144,14 @@
       const waitMs = TIMEOUTS.waitAfterSave || 6000;
       fx?.setStatus?.(`等待保存 ${Math.round(waitMs / 1000)}s · ${file.name}`, "run");
       await dom.sleep(waitMs);
-      if (SELECTORS.errorIndicator) {
-        const errEl = dom.query(SELECTORS.errorIndicator);
-        if (errEl && dom.isVisible(errEl)) {
-          const msg = (errEl.textContent || "").trim() || "保存失败（页面报错）";
-          throw new Error(msg);
+
+      // QBO 成功 toast 也可能匹配 errorIndicator（role=alert），需按文案区分
+      const toastText = readVisibleMessage(dom, SELECTORS.errorIndicator);
+      if (toastText) {
+        if (looksLikeSaveSuccess(toastText)) {
+          fx?.setStatus?.(`保存成功 · ${toastText}`, "done");
+        } else {
+          throw new Error(toastText || "保存失败（页面报错）");
         }
       }
     }
@@ -134,5 +159,10 @@
     fx?.clearSpot?.();
   }
 
-  root.workflow = { runImportQueue, needsUsdCurrency, isAllowedExtension };
+  root.workflow = {
+    runImportQueue,
+    needsUsdCurrency,
+    isAllowedExtension,
+    looksLikeSaveSuccess,
+  };
 })();

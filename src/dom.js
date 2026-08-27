@@ -182,9 +182,13 @@
       if (errorSelector) {
         const errEl = query(errorSelector);
         if (errEl && isVisible(errEl)) {
-          const msg =
-            (errEl.textContent || "").trim() || `${label}失败（页面报错）`;
-          throw new Error(msg);
+          const raw = (errEl.textContent || "").replace(/\s+/g, " ").replace(/\bClose\b/gi, "").trim();
+          const isSuccessToast =
+            /\bsaved\b/i.test(raw) && !/\b(error|failed|unable|invalid)\b/i.test(raw);
+          if (!isSuccessToast) {
+            const msg = raw || `${label}失败（页面报错）`;
+            throw new Error(msg);
+          }
         }
       }
 
