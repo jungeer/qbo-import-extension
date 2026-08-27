@@ -16,6 +16,24 @@
     successIndicator: '[data-qbo-import="success"]',
     /** 页面错误提示（出现即抛错） */
     errorIndicator: '[data-qbo-import="error"]',
+    /**
+     * 币种下拉框（优先原生 <select>）。
+     * 若是自定义下拉，可再配 currencyTrigger + currencyOptionUsd。
+     */
+    currencySelect: '[data-qbo-import="currency-select"]',
+    /** 自定义币种下拉的打开按钮（可选） */
+    currencyTrigger: '[data-qbo-import="currency-trigger"]',
+    /** 自定义下拉中的 USD 选项（可选） */
+    currencyOptionUsd: '[data-qbo-import="currency-option-usd"]',
+  };
+
+  root.RULES = {
+    /** 仅接受 .csv */
+    acceptExtensions: [".csv"],
+    /** 文件名包含该模式时，导入前先切到 USD */
+    usdFilenamePattern: /USD/i,
+    /** 写入原生 select 时的 value */
+    usdCurrencyValue: "USD",
   };
 
   root.TIMEOUTS = {
@@ -23,5 +41,6 @@
     waitAfterImport: 30000,
     waitAfterSave: 30000,
     betweenFiles: 800,
+    afterCurrencyChange: 400,
   };
 })();

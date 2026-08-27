@@ -1,9 +1,21 @@
 /**
  * 逐个文件导入流程：
- * 选文件 → 点导入 → 写入 file input → 等导入成功 → 点保存 → 等保存成功 → 标记完成
+ * （USD 文件名则先切币种）→ 点导入 → DataTransfer 写入 → 点保存 → 标记完成
  */
 (() => {
   const root = (globalThis.__QBO_IMPORT__ = globalThis.__QBO_IMPORT__ || {});
+
+  function needsUsdCurrency(fileName, rules) {
+    const pattern = rules?.usdFilenamePattern || /USD/i;
+    return pattern.test(fileName || "");
+  }
+
+  function isAllowedExtension(fileName, rules) {
+    const exts = rules?.acceptExtensions;
+    if (!exts || !exts.length) return true;
+    const lower = String(fileName || "").toLowerCase();
+    return exts.some((ext) => lower.endsWith(String(ext).toLowerCase()));
+  }
 
   /**
    * @param {object} options
@@ -15,7 +27,7 @@
    */
   async function runImportQueue(options) {
     const { files, onFileStatus, onError, onRunningChange, shouldStop } = options;
-    const { SELECTORS, TIMEOUTS, dom, fx } = root;
+    const { SELECTORS, TIMEOUTS, RULES, dom, fx } = root;
 
     let outcome = "idle";
     onRunningChange(true);
@@ -35,7 +47,10 @@
         fx?.onFileStart?.(file.name, i, files.length);
 
         try {
-          await importOneFile(file, SELECTORS, TIMEOUTS, dom, fx);
+          if (!isAllowedExtension(file.name, RULES)) {
+            throw new Error(`仅支持 ${RULES.acceptExtensions.join(" / ")} 文件`);
+          }
+          await importOneFile(file, SELECTORS, TIMEOUTS, RULES, dom, fx);
           onFileStatus(i, "done");
           fx?.onFileDone?.(file.name);
         } catch (err) {
@@ -62,7 +77,24 @@
     }
   }
 
-  async function importOneFile(file, SELECTORS, TIMEOUTS, dom, fx) {
+  async function importOneFile(file, SELECTORS, TIMEOUTS, RULES, dom, fx) {
+    // 0) 文件名含 USD → 先切换币种下拉为 USD
+    if (needsUsdCurrency(file.name, RULES)) {
+      fx?.setStatus?.(`切换币种 USD · ${file.name}`, "run");
+      const currencyEl =
+        dom.query(SELECTORS.currencySelect) ||
+        dom.query(SELECTORS.currencyTrigger);
+      if (currencyEl) {
+        await fx?.spotlight?.(currencyEl, "切换币种 → USD");
+      }
+      await dom.ensureCurrency(
+        SELECTORS,
+        RULES.usdCurrencyValue || "USD",
+        TIMEOUTS.waitForElement
+      );
+      await dom.sleep(TIMEOUTS.afterCurrencyChange || 400);
+    }
+
     // 1) 点击导入按钮（占位）
     const importBtn = await dom.waitForElement(
       SELECTORS.importButton,
@@ -77,13 +109,13 @@
       TIMEOUTS.waitForElement
     );
     fx?.setStatus?.(`写入文件 · ${file.name}`, "run");
-    await fx?.spotlight?.(fileInput, "选择文件", 360);
+    await fx?.spotlight?.(fileInput, "写入 CSV", 360);
     dom.assignFileToInput(fileInput, file);
 
     // 3) 等待导入阶段成功（若页面有成功态；没有配置成功选择器则短暂等待）
     if (SELECTORS.successIndicator && SELECTORS.successIndicator.includes("data-qbo-import")) {
       // 占位阶段：导入后可能还没有 success，先等一小段再点保存
-      // 真实选择器到位后，可把「导入成功」与「保存成功」拆成两个指示器
+      // 真实选择器到位后，可把「可保存」与「保存成功」拆成两个指示器
       await dom.sleep(600);
     }
 
@@ -107,5 +139,5 @@
     fx?.clearSpot?.();
   }
 
-  root.workflow = { runImportQueue };
+  root.workflow = { runImportQueue, needsUsdCurrency, isAllowedExtension };
 })();

@@ -70,9 +70,9 @@
 
       <section class="qbo-ih-section">
         <label class="qbo-ih-file-pick">
-          <input type="file" multiple hidden data-role="file-input" />
-          <span class="qbo-ih-file-pick-btn">选择本地文件</span>
-          <span class="qbo-ih-file-pick-hint">支持多选，将按列表顺序导入</span>
+          <input type="file" multiple accept=".csv,text/csv" hidden data-role="file-input" />
+          <span class="qbo-ih-file-pick-btn">选择 CSV 文件</span>
+          <span class="qbo-ih-file-pick-hint">仅 CSV；文件名含 USD 会先切换币种再导入</span>
         </label>
       </section>
 
@@ -138,13 +138,29 @@
 
     fileInput.addEventListener("change", () => {
       if (running) return;
-      const files = Array.from(fileInput.files || []);
-      items = files.map((file, index) => ({
+      const root = globalThis.__QBO_IMPORT__;
+      const allFiles = Array.from(fileInput.files || []);
+      const allowed = allFiles.filter((file) =>
+        root?.workflow?.isAllowedExtension
+          ? root.workflow.isAllowedExtension(file.name, root.RULES)
+          : /\.csv$/i.test(file.name)
+      );
+      const rejected = allFiles.length - allowed.length;
+
+      items = allowed.map((file, index) => ({
         id: `${file.name}-${file.size}-${file.lastModified}-${index}`,
         file,
         status: "pending",
+        needsUsd: root?.workflow?.needsUsdCurrency
+          ? root.workflow.needsUsdCurrency(file.name, root.RULES)
+          : /USD/i.test(file.name),
       }));
-      setError(null);
+
+      if (rejected > 0) {
+        setError(`已忽略 ${rejected} 个非 CSV 文件，仅导入 .csv`);
+      } else {
+        setError(null);
+      }
       fileInput.value = "";
       render();
     });
@@ -187,9 +203,9 @@
           <span class="qbo-ih-item-name" title="${escapeAttr(item.file.name)}">${escapeHtml(item.file.name)}</span>
           <span class="qbo-ih-badge">${statusLabel(item.status)}</span>
         </div>
-        <div class="qbo-ih-item-meta">${formatSize(item.file.size)}${
-          item.error ? ` · ${escapeHtml(item.error)}` : ""
-        }</div>
+        <div class="qbo-ih-item-meta">${formatSize(item.file.size)} · CSV${
+          item.needsUsd ? ' · <span class="qbo-ih-tag-usd">先切 USD</span>' : ""
+        }${item.error ? ` · ${escapeHtml(item.error)}` : ""}</div>
       </li>`
       )
       .join("");

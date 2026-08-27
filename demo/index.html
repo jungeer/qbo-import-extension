@@ -120,6 +120,14 @@
       <div class="demo-card">
         <h2>导入区域（占位元素）</h2>
         <div class="demo-row">
+          <label style="display:flex;align-items:center;gap:8px;font-weight:600">
+            币种
+            <select data-qbo-import="currency-select" id="currency-select" class="demo-btn">
+              <option value="CNY">CNY</option>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+            </select>
+          </label>
           <button
             type="button"
             class="demo-btn primary"
@@ -137,6 +145,7 @@
 
         <input
           type="file"
+          accept=".csv,text/csv"
           data-qbo-import="file-input"
           style="display: block; margin-bottom: 12px"
         />
@@ -178,6 +187,7 @@
       const importBtn = document.querySelector('[data-qbo-import="import-button"]');
       const saveBtn = document.querySelector('[data-qbo-import="save-button"]');
       const fileInput = document.querySelector('[data-qbo-import="file-input"]');
+      const currencySelect = document.querySelector('[data-qbo-import="currency-select"]');
       let failNext = false;
       let lastFileName = "";
 
@@ -191,9 +201,13 @@
         errorEl.classList.remove("is-on");
       }
 
+      currencySelect.addEventListener("change", () => {
+        log(`币种已切换为: ${currencySelect.value}`);
+      });
+
       importBtn.addEventListener("click", () => {
         hideOutcomes();
-        log("已点击导入按钮");
+        log(`已点击导入按钮（当前币种 ${currencySelect.value}）`);
         saveBtn.disabled = false;
       });
 
@@ -213,6 +227,12 @@
           return;
         }
         const name = lastFileName || fileInput.files[0].name;
+        if (/USD/i.test(name) && currencySelect.value !== "USD") {
+          errorEl.textContent = `保存失败：USD 文件但币种仍为 ${currencySelect.value}`;
+          errorEl.classList.add("is-on");
+          log(errorEl.textContent);
+          return;
+        }
         if (failNext) {
           failNext = false;
           errorEl.textContent = `保存失败：模拟错误（${name}）`;
@@ -220,9 +240,9 @@
           log(`保存失败: ${name}`);
           return;
         }
-        successEl.textContent = `保存成功：${name}`;
+        successEl.textContent = `保存成功：${name}（币种 ${currencySelect.value}）`;
         successEl.classList.add("is-on");
-        log(`保存成功: ${name}`);
+        log(`保存成功: ${name} / ${currencySelect.value}`);
         saveBtn.disabled = true;
         fileInput.value = "";
         lastFileName = "";

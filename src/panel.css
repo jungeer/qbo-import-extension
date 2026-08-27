@@ -227,6 +227,11 @@ html[data-qbo-import-helper="open"] {
   font-size: 12px;
 }
 
+.qbo-ih-tag-usd {
+  color: #1b5e20;
+  font-weight: 700;
+}
+
 .qbo-ih-badge {
   flex: 0 0 auto;
   padding: 2px 8px;
