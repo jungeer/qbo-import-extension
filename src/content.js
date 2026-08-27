@@ -131,7 +131,10 @@
 
         <div class="qbo-ih-tab-panel" data-tab-panel="config" role="tabpanel" hidden>
           <section class="qbo-ih-section qbo-ih-config-section">
-            <p class="qbo-ih-config-intro">自定义选择器、规则与等待时间，保存后立即生效并记住。</p>
+            <p class="qbo-ih-config-intro">
+              按真实流程配置：文件名含 USD 时先切 Currency → 写入 CSV（可不点 Import）→ 等待解析 → 点 Save and new → 再导下一个。
+              下面每项都是 CSS 选择器或规则；改完点「保存配置」立即生效。
+            </p>
             <div class="qbo-ih-config-fields" data-role="config-fields"></div>
             <div class="qbo-ih-config-actions">
               <button type="button" class="qbo-ih-btn qbo-ih-btn-primary" data-action="save-config">保存配置</button>
