@@ -378,6 +378,128 @@ html[data-qbo-import-helper="open"] {
   font-size: 11px;
 }
 
+.qbo-ih-config-section {
+  border-top: 1px solid var(--qbo-ih-line);
+  padding-top: 10px;
+}
+
+.qbo-ih-config-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--qbo-ih-line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--qbo-ih-ink);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.qbo-ih-config-toggle.is-open .qbo-ih-config-chevron {
+  transform: rotate(180deg);
+}
+
+.qbo-ih-config-chevron {
+  transition: transform 0.2s ease;
+}
+
+.qbo-ih-config-body {
+  margin-top: 10px;
+  max-height: 42vh;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.qbo-ih-config-intro {
+  margin: 0 0 10px;
+  color: var(--qbo-ih-muted);
+  font-size: 12px;
+}
+
+.qbo-ih-config-group {
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid var(--qbo-ih-line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.qbo-ih-config-group h3 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--qbo-ih-muted);
+  font-weight: 700;
+}
+
+.qbo-ih-config-field {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.qbo-ih-config-field input[type="text"],
+.qbo-ih-config-field input[type="number"] {
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--qbo-ih-line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--qbo-ih-ink);
+  font: inherit;
+  font-size: 12px;
+}
+
+.qbo-ih-config-check {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 8px;
+}
+
+.qbo-ih-config-check input {
+  margin-top: 3px;
+}
+
+.qbo-ih-config-label {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.qbo-ih-config-hint {
+  color: var(--qbo-ih-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.qbo-ih-config-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.qbo-ih-config-status {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.qbo-ih-config-status[data-tone="ok"] {
+  background: var(--qbo-ih-done-bg);
+  color: var(--qbo-ih-done);
+}
+
+.qbo-ih-config-status[data-tone="error"] {
+  background: var(--qbo-ih-warn-bg);
+  color: var(--qbo-ih-warn);
+}
+
 .qbo-ih-footer code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 10px;

@@ -117,14 +117,31 @@
         <p class="qbo-ih-error" data-role="error"></p>
       </section>
 
+      <section class="qbo-ih-section qbo-ih-config-section">
+        <button type="button" class="qbo-ih-config-toggle" data-action="toggle-config" aria-expanded="false">
+          <span>配置项</span>
+          <span class="qbo-ih-config-chevron" aria-hidden="true">▾</span>
+        </button>
+        <div class="qbo-ih-config-body" data-role="config-body" hidden>
+          <p class="qbo-ih-config-intro">自定义选择器、规则与等待时间，保存后立即生效并记住。</p>
+          <div class="qbo-ih-config-fields" data-role="config-fields"></div>
+          <div class="qbo-ih-config-actions">
+            <button type="button" class="qbo-ih-btn qbo-ih-btn-primary" data-action="save-config">保存配置</button>
+            <button type="button" class="qbo-ih-btn" data-action="reset-config">恢复默认</button>
+          </div>
+          <p class="qbo-ih-config-status" data-role="config-status" hidden></p>
+        </div>
+      </section>
+
       <footer class="qbo-ih-footer">
-        <p>页面按钮选择器仍为占位，配置见 <code>src/selectors.js</code></p>
+        <p>可在上方「配置项」自定义选择器与等待时间</p>
       </footer>
     `;
 
     document.documentElement.appendChild(panel);
     bindPanel(panel);
     render();
+    initConfigPanel(panel);
   }
 
   function bindPanel(panel) {
@@ -152,6 +169,12 @@
         if (running) return;
         const id = btn.getAttribute("data-id");
         removeItem(id);
+      } else if (action === "toggle-config") {
+        toggleConfigBody(panel);
+      } else if (action === "save-config") {
+        saveConfigFromPanel(panel);
+      } else if (action === "reset-config") {
+        resetConfigFromPanel(panel);
       }
     });
 
@@ -240,6 +263,125 @@
       setError(null);
     }
     render();
+  }
+
+  function toggleConfigBody(panel) {
+    const body = panel.querySelector('[data-role="config-body"]');
+    const toggle = panel.querySelector('[data-action="toggle-config"]');
+    if (!body || !toggle) return;
+    const open = body.hidden;
+    body.hidden = !open;
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    toggle.classList.toggle("is-open", open);
+  }
+
+  function buildConfigFieldsHtml(api, settings) {
+    const groups = {};
+    api.FIELDS.forEach((field) => {
+      if (!groups[field.group]) groups[field.group] = [];
+      groups[field.group].push(field);
+    });
+
+    return Object.keys(groups)
+      .map((group) => {
+        const fields = groups[group]
+          .map((field) => {
+            const value = api.getByPath(settings, field.key);
+            if (field.type === "checkbox") {
+              return `
+              <label class="qbo-ih-config-field qbo-ih-config-check">
+                <input type="checkbox" data-config-key="${escapeAttr(field.key)}" ${value ? "checked" : ""} />
+                <span>
+                  <span class="qbo-ih-config-label">${escapeHtml(field.label)}</span>
+                  ${field.hint ? `<span class="qbo-ih-config-hint">${escapeHtml(field.hint)}</span>` : ""}
+                </span>
+              </label>`;
+            }
+            return `
+              <label class="qbo-ih-config-field">
+                <span class="qbo-ih-config-label">${escapeHtml(field.label)}</span>
+                <input
+                  type="${field.type === "number" ? "number" : "text"}"
+                  data-config-key="${escapeAttr(field.key)}"
+                  value="${escapeAttr(value == null ? "" : String(value))}"
+                  ${field.type === "number" ? 'min="0" step="100"' : ""}
+                />
+                ${field.hint ? `<span class="qbo-ih-config-hint">${escapeHtml(field.hint)}</span>` : ""}
+              </label>`;
+          })
+          .join("");
+        return `<div class="qbo-ih-config-group"><h3>${escapeHtml(group)}</h3>${fields}</div>`;
+      })
+      .join("");
+  }
+
+  async function initConfigPanel(panel) {
+    const api = globalThis.__QBO_IMPORT__?.configApi;
+    const fieldsRoot = panel.querySelector('[data-role="config-fields"]');
+    if (!api || !fieldsRoot) return;
+
+    try {
+      const settings = await api.loadAndApply();
+      fieldsRoot.innerHTML = buildConfigFieldsHtml(api, settings);
+    } catch (err) {
+      fieldsRoot.innerHTML = `<p class="qbo-ih-config-hint">配置加载失败：${escapeHtml(err?.message || String(err))}</p>`;
+    }
+  }
+
+  function readConfigFromPanel(panel) {
+    const api = globalThis.__QBO_IMPORT__?.configApi;
+    if (!api) throw new Error("配置模块未加载");
+    const settings = api.deepClone(api.DEFAULTS);
+    panel.querySelectorAll("[data-config-key]").forEach((input) => {
+      const key = input.getAttribute("data-config-key");
+      if (!key) return;
+      if (input.type === "checkbox") {
+        api.setByPath(settings, key, !!input.checked);
+      } else if (input.type === "number") {
+        api.setByPath(settings, key, Number(input.value) || 0);
+      } else {
+        api.setByPath(settings, key, input.value);
+      }
+    });
+    return settings;
+  }
+
+  function setConfigStatus(panel, message, tone = "ok") {
+    const el = panel.querySelector('[data-role="config-status"]');
+    if (!el) return;
+    if (!message) {
+      el.hidden = true;
+      el.textContent = "";
+      return;
+    }
+    el.hidden = false;
+    el.dataset.tone = tone;
+    el.textContent = message;
+  }
+
+  async function saveConfigFromPanel(panel) {
+    const api = globalThis.__QBO_IMPORT__?.configApi;
+    if (!api) return;
+    try {
+      const settings = readConfigFromPanel(panel);
+      await api.saveAndApply(settings);
+      setConfigStatus(panel, "配置已保存并生效", "ok");
+    } catch (err) {
+      setConfigStatus(panel, `保存失败：${err?.message || String(err)}`, "error");
+    }
+  }
+
+  async function resetConfigFromPanel(panel) {
+    const api = globalThis.__QBO_IMPORT__?.configApi;
+    if (!api) return;
+    try {
+      const settings = await api.resetToDefaults();
+      const fieldsRoot = panel.querySelector('[data-role="config-fields"]');
+      if (fieldsRoot) fieldsRoot.innerHTML = buildConfigFieldsHtml(api, settings);
+      setConfigStatus(panel, "已恢复默认配置", "ok");
+    } catch (err) {
+      setConfigStatus(panel, `恢复失败：${err?.message || String(err)}`, "error");
+    }
   }
 
   function statusLabel(status) {
@@ -352,6 +494,13 @@
       return;
     }
     if (running || items.length === 0) return;
+
+    // 开始前再应用一次已保存配置
+    try {
+      await root.configApi?.loadAndApply?.();
+    } catch {
+      // ignore
+    }
 
     stopRequested = false;
     // 仅处理未完成项；失败项可手动清空后重选

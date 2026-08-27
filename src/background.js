@@ -19,6 +19,7 @@ chrome.action.onClicked.addListener(async (tab) => {
 
   const scriptFiles = [
     "src/selectors.js",
+    "src/config.js",
     "src/dom.js",
     "src/effects.js",
     "src/workflow.js",
