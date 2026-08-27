@@ -158,13 +158,15 @@
       await dom.sleep(waitMs);
 
       // QBO 成功 toast 也可能匹配 errorIndicator（role=alert），需按文案区分
+      // 注意：文案可能是 "Journal Entry 3428 savedClose"（Close 无空格粘连）
       const toastText = readVisibleMessage(dom, SELECTORS.errorIndicator);
       if (toastText) {
         if (looksLikeSaveSuccess(toastText)) {
           fx?.setStatus?.(`保存成功 · ${toastText}`, "done");
-        } else {
-          throw new Error(toastText || "保存失败（页面报错）");
+        } else if (looksLikeError(toastText)) {
+          throw new Error(toastText);
         }
+        // 其它 toast 忽略，避免误报
       }
     }
 
