@@ -11,10 +11,10 @@
     importButton: ".txp-capability-journalImportBtn-NPulq, .txp-capability-journalImportContainer-O4fvl button",
     /** 页面内隐藏的 CSV file input —— DataTransfer 直写目标 */
     fileInput: "#csvFileInput, input#csvFileInput, .txp-capability-hiddenInput-weRUg",
-    /** 底部 Save（非 Save and new） */
-    saveButton: '[data-testid="save_button"]',
-    /** 若要用「Save and new」可改为此选择器 */
-    saveAndNewButton: '[data-testid="txp-save-button"] button',
+    /** 底部「Save and new」主按钮 */
+    saveButton: '[data-testid="txp-save-button"] button.SplitButton-buttonWrapper-e54ef61, [data-testid="txp-save-button"] button:not([aria-haspopup]), [data-testid="txp-save-button"] button',
+    /** 仅 Save（非 Save and new）备用 */
+    saveOnlyButton: '[data-testid="save_button"]',
     /**
      * CSV 解析完成、可点保存的选择器。
      * 留空：固定等待 TIMEOUTS.waitAfterImport（默认 10s）。
