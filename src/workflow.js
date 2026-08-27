@@ -17,26 +17,38 @@
     return exts.some((ext) => lower.endsWith(String(ext).toLowerCase()));
   }
 
-  /** QBO 成功 toast 文案如 "Journal Entry 3422 saved" */
+  /** QBO 成功 toast 文案如 "Journal Entry 3422 saved" / "savedClose" */
   function looksLikeSaveSuccess(text) {
-    const t = String(text || "").replace(/\s+/g, " ").trim();
+    const t = normalizeToastText(text);
     if (!t) return false;
-    return /\bsaved\b/i.test(t) && !/\b(error|failed|unable|invalid)\b/i.test(t);
+    return /saved/i.test(t) && !/\b(error|failed|unable|invalid)\b/i.test(t);
   }
 
-  /** 规范化 toast 文案，去掉 Close 按钮粘连 */
+  function looksLikeError(text) {
+    const t = normalizeToastText(text);
+    if (!t) return false;
+    if (looksLikeSaveSuccess(t)) return false;
+    return /\b(error|failed|unable|invalid|something went wrong)\b/i.test(t);
+  }
+
+  /** 规范化 toast 文案：去掉 Close 按钮粘连（含 savedClose） */
   function normalizeToastText(text) {
     return String(text || "")
       .replace(/\s+/g, " ")
+      .replace(/([a-z])Close\b/gi, "$1")
       .replace(/\bClose\b/gi, "")
       .trim();
   }
 
   function readVisibleMessage(dom, selector) {
     if (!selector) return "";
-    const el = dom.query(selector);
-    if (!el || !dom.isVisible(el)) return "";
-    return normalizeToastText(el.textContent || "");
+    const nodes = document.querySelectorAll(selector);
+    for (const el of nodes) {
+      if (!dom.isVisible(el)) continue;
+      const text = normalizeToastText(el.textContent || "");
+      if (text) return text;
+    }
+    return "";
   }
 
   async function runImportQueue(options) {

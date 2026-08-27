@@ -182,10 +182,14 @@
       if (errorSelector) {
         const errEl = query(errorSelector);
         if (errEl && isVisible(errEl)) {
-          const raw = (errEl.textContent || "").replace(/\s+/g, " ").replace(/\bClose\b/gi, "").trim();
+          const raw = (errEl.textContent || "")
+            .replace(/\s+/g, " ")
+            .replace(/([a-z])Close\b/gi, "$1")
+            .replace(/\bClose\b/gi, "")
+            .trim();
           const isSuccessToast =
-            /\bsaved\b/i.test(raw) && !/\b(error|failed|unable|invalid)\b/i.test(raw);
-          if (!isSuccessToast) {
+            /saved/i.test(raw) && !/\b(error|failed|unable|invalid)\b/i.test(raw);
+          if (!isSuccessToast && /\b(error|failed|unable|invalid)\b/i.test(raw)) {
             const msg = raw || `${label}失败（页面报错）`;
             throw new Error(msg);
           }
