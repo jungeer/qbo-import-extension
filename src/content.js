@@ -130,18 +130,24 @@
         </div>
 
         <div class="qbo-ih-tab-panel" data-tab-panel="config" role="tabpanel" hidden>
-          <section class="qbo-ih-section qbo-ih-config-section">
-            <p class="qbo-ih-config-intro">
-              按真实流程配置：文件名含 USD 时先切 Currency → 写入 CSV（可不点 Import）→ 等待解析 → 点 Save and new → 再导下一个。
-              下面每项都是 CSS 选择器或规则；改完点「保存配置」立即生效。
-            </p>
-            <div class="qbo-ih-config-fields" data-role="config-fields"></div>
-            <div class="qbo-ih-config-actions">
-              <button type="button" class="qbo-ih-btn qbo-ih-btn-primary" data-action="save-config">保存配置</button>
-              <button type="button" class="qbo-ih-btn" data-action="reset-config">恢复默认</button>
+          <div class="qbo-ih-config-layout">
+            <div class="qbo-ih-config-scroll">
+              <section class="qbo-ih-section qbo-ih-config-section">
+                <p class="qbo-ih-config-intro">
+                  按真实流程配置：文件名含 USD 时先切 Currency → 写入 CSV（可不点 Import）→ 等待解析 → 点 Save and new → 再导下一个。
+                  下面每项都是 CSS 选择器或规则；改完点「保存配置」立即生效。
+                </p>
+                <div class="qbo-ih-config-fields" data-role="config-fields"></div>
+              </section>
             </div>
-            <p class="qbo-ih-config-status" data-role="config-status" hidden></p>
-          </section>
+            <div class="qbo-ih-config-footer">
+              <p class="qbo-ih-config-status" data-role="config-status" hidden></p>
+              <div class="qbo-ih-config-actions">
+                <button type="button" class="qbo-ih-btn qbo-ih-btn-primary" data-action="save-config">保存配置</button>
+                <button type="button" class="qbo-ih-btn" data-action="reset-config">恢复默认</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     `;
