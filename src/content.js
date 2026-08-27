@@ -2,6 +2,11 @@
  * 注入右侧操作面板：选文件、列表状态、开始/停止导入、错误展示。
  */
 (() => {
+  if (globalThis.__QBO_IMPORT_PANEL_BOOTSTRAPPED__) {
+    return;
+  }
+  globalThis.__QBO_IMPORT_PANEL_BOOTSTRAPPED__ = true;
+
   const PANEL_ID = "qbo-import-helper-panel";
   const STYLE_ID = "qbo-import-helper-style";
   const HOST_ATTR = "data-qbo-import-helper";
@@ -24,14 +29,8 @@
     mountPanel();
   }
 
-  // 始终暴露 toggle，供 background / demo 调用（重复注入时也要可用）
   globalThis.__QBO_IMPORT__ = globalThis.__QBO_IMPORT__ || {};
   globalThis.__QBO_IMPORT__.togglePanel = togglePanel;
-
-  if (globalThis.__QBO_IMPORT_PANEL_BOOTSTRAPPED__) {
-    return;
-  }
-  globalThis.__QBO_IMPORT_PANEL_BOOTSTRAPPED__ = true;
 
   if (globalThis.chrome?.runtime?.onMessage?.addListener) {
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {

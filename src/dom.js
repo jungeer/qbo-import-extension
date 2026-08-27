@@ -68,27 +68,74 @@
   }
 
   /**
-   * 切换币种：优先原生 select；否则点开自定义下拉再点 USD 选项。
+   * 切换币种：原生 select 或 QBO combobox（点开 → 选含 USD 的 option）。
    */
   async function ensureCurrency(selectors, value, timeoutMs) {
     if (selectors.currencySelect) {
       const selectEl = await waitForElement(selectors.currencySelect, timeoutMs);
       if (selectEl.tagName === "SELECT") {
-        if (selectEl.value === value) return "already";
+        const current = selectEl.value || selectEl.textContent || "";
+        if (String(current).includes(value)) return "already";
         setSelectValue(selectEl, value);
         return "select";
       }
     }
 
-    if (selectors.currencyTrigger && selectors.currencyOptionUsd) {
+    if (selectors.currencyTrigger) {
       const trigger = await waitForElement(selectors.currencyTrigger, timeoutMs);
+      const currentValue = trigger.value || trigger.textContent || "";
+      if (String(currentValue).toUpperCase().includes(value.toUpperCase())) {
+        return "already";
+      }
+
       clickElement(trigger);
-      const option = await waitForElement(selectors.currencyOptionUsd, timeoutMs);
-      clickElement(option);
-      return "custom";
+      await sleep(200);
+
+      const listboxSelector = selectors.currencyListbox || '[role="listbox"]';
+      await waitForElement(listboxSelector, timeoutMs);
+
+      const options = document.querySelectorAll(
+        selectors.currencyOptionUsd || '[role="listbox"] [role="option"]'
+      );
+      const target = Array.from(options).find((opt) => {
+        const text = (opt.textContent || "").trim();
+        return text.toUpperCase().includes(value.toUpperCase());
+      });
+      if (!target) {
+        throw new Error(`币种下拉中找不到 ${value} 选项`);
+      }
+      clickElement(target);
+      return "combobox";
     }
 
-    throw new Error("未配置可用的币种选择器（currencySelect 或 currencyTrigger + currencyOptionUsd）");
+    throw new Error("未配置可用的币种选择器（currencyTrigger 或 currencySelect）");
+  }
+
+  /** CSV 写入后：等待借贷合计出现非 0.00 金额，表示后端解析完成 */
+  async function waitForCsvParsed(timeoutMs) {
+    const started = Date.now();
+    while (Date.now() - started < timeoutMs) {
+      const debitEl = query('[data-testid="total_debit"]');
+      const creditEl = query('[data-testid="total_credit"]');
+      const texts = [debitEl, creditEl]
+        .filter(Boolean)
+        .map((el) => (el.textContent || "").trim());
+      const parsed = texts.some((text) => text && !(/0\.00$/.test(text.replace(/,/g, ""))));
+      if (parsed) return;
+      await sleep(400);
+    }
+    throw new Error(`CSV 解析超时（${timeoutMs}ms）`);
+  }
+
+  /** 点击 Save 后：Journal Entry 弹层关闭视为保存完成 */
+  async function waitForSaveComplete(timeoutMs) {
+    const started = Date.now();
+    while (Date.now() - started < timeoutMs) {
+      const layout = query('[data-testid="txp-accounting-layout"]');
+      if (!layout || !isVisible(layout)) return;
+      await sleep(350);
+    }
+    throw new Error(`保存完成超时（${timeoutMs}ms）`);
   }
 
   /**
@@ -177,6 +224,8 @@
     clickElement,
     setSelectValue,
     ensureCurrency,
+    waitForCsvParsed,
+    waitForSaveComplete,
     assignFileToInput,
     waitForOutcome,
     isVisible,
