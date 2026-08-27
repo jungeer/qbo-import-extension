@@ -72,70 +72,75 @@
         <button type="button" class="qbo-ih-icon-btn" data-action="close" aria-label="关闭">×</button>
       </header>
 
-      <section class="qbo-ih-section">
-        <div class="qbo-ih-pick-row">
-          <label class="qbo-ih-file-pick">
-            <input type="file" multiple accept=".csv,text/csv" hidden data-role="file-input" />
-            <span class="qbo-ih-file-pick-btn">选择 CSV 文件</span>
-            <span class="qbo-ih-file-pick-hint">可多选单个文件</span>
-          </label>
-          <label class="qbo-ih-file-pick">
-            <input type="file" multiple webkitdirectory directory hidden data-role="folder-input" />
-            <span class="qbo-ih-file-pick-btn">选择文件夹</span>
-            <span class="qbo-ih-file-pick-hint">自动列出文件夹内全部 CSV</span>
-          </label>
-        </div>
-        <p class="qbo-ih-file-pick-note">仅 CSV；文件名含 USD 会先切换币种再导入</p>
-      </section>
-
-      <section class="qbo-ih-section qbo-ih-list-section">
-        <div class="qbo-ih-list-head">
-          <h2>文件列表</h2>
-          <span data-role="count">0</span>
-        </div>
-        <p class="qbo-ih-folder-note" data-role="folder-note" hidden></p>
-        <ul class="qbo-ih-list" data-role="list"></ul>
-        <p class="qbo-ih-empty" data-role="empty">尚未选择文件</p>
-      </section>
-
-      <section class="qbo-ih-section">
-        <div class="qbo-ih-actions">
-          <button type="button" class="qbo-ih-btn qbo-ih-btn-primary" data-action="start" disabled>
-            开始导入
-          </button>
-          <button type="button" class="qbo-ih-btn" data-action="stop" disabled>
-            停止
-          </button>
-          <button type="button" class="qbo-ih-btn" data-action="clear" disabled>
-            清空
-          </button>
-        </div>
-      </section>
-
-      <section class="qbo-ih-section qbo-ih-error-section" data-role="error-wrap" hidden>
-        <h2>错误信息</h2>
-        <p class="qbo-ih-error" data-role="error"></p>
-      </section>
-
-      <section class="qbo-ih-section qbo-ih-config-section">
-        <button type="button" class="qbo-ih-config-toggle" data-action="toggle-config" aria-expanded="false">
-          <span>配置项</span>
-          <span class="qbo-ih-config-chevron" aria-hidden="true">▾</span>
+      <nav class="qbo-ih-tabs" role="tablist" aria-label="面板切换">
+        <button type="button" class="qbo-ih-tab is-active" role="tab" aria-selected="true" data-action="switch-tab" data-tab="import">
+          导入
         </button>
-        <div class="qbo-ih-config-body" data-role="config-body" hidden>
-          <p class="qbo-ih-config-intro">自定义选择器、规则与等待时间，保存后立即生效并记住。</p>
-          <div class="qbo-ih-config-fields" data-role="config-fields"></div>
-          <div class="qbo-ih-config-actions">
-            <button type="button" class="qbo-ih-btn qbo-ih-btn-primary" data-action="save-config">保存配置</button>
-            <button type="button" class="qbo-ih-btn" data-action="reset-config">恢复默认</button>
-          </div>
-          <p class="qbo-ih-config-status" data-role="config-status" hidden></p>
-        </div>
-      </section>
+        <button type="button" class="qbo-ih-tab" role="tab" aria-selected="false" data-action="switch-tab" data-tab="config">
+          配置
+        </button>
+      </nav>
 
-      <footer class="qbo-ih-footer">
-        <p>可在上方「配置项」自定义选择器与等待时间</p>
-      </footer>
+      <div class="qbo-ih-tab-panels">
+        <div class="qbo-ih-tab-panel is-active" data-tab-panel="import" role="tabpanel">
+          <section class="qbo-ih-section">
+            <div class="qbo-ih-pick-row">
+              <label class="qbo-ih-file-pick">
+                <input type="file" multiple accept=".csv,text/csv" hidden data-role="file-input" />
+                <span class="qbo-ih-file-pick-btn">选择 CSV 文件</span>
+                <span class="qbo-ih-file-pick-hint">可多选单个文件</span>
+              </label>
+              <label class="qbo-ih-file-pick">
+                <input type="file" multiple webkitdirectory directory hidden data-role="folder-input" />
+                <span class="qbo-ih-file-pick-btn">选择文件夹</span>
+                <span class="qbo-ih-file-pick-hint">自动列出文件夹内全部 CSV</span>
+              </label>
+            </div>
+            <p class="qbo-ih-file-pick-note">仅 CSV；文件名含 USD 会先切换币种再导入</p>
+          </section>
+
+          <section class="qbo-ih-section qbo-ih-list-section">
+            <div class="qbo-ih-list-head">
+              <h2>文件列表</h2>
+              <span data-role="count">0</span>
+            </div>
+            <p class="qbo-ih-folder-note" data-role="folder-note" hidden></p>
+            <ul class="qbo-ih-list" data-role="list"></ul>
+            <p class="qbo-ih-empty" data-role="empty">尚未选择文件</p>
+          </section>
+
+          <section class="qbo-ih-section">
+            <div class="qbo-ih-actions">
+              <button type="button" class="qbo-ih-btn qbo-ih-btn-primary" data-action="start" disabled>
+                开始导入
+              </button>
+              <button type="button" class="qbo-ih-btn" data-action="stop" disabled>
+                停止
+              </button>
+              <button type="button" class="qbo-ih-btn" data-action="clear" disabled>
+                清空
+              </button>
+            </div>
+          </section>
+
+          <section class="qbo-ih-section qbo-ih-error-section" data-role="error-wrap" hidden>
+            <h2>错误信息</h2>
+            <p class="qbo-ih-error" data-role="error"></p>
+          </section>
+        </div>
+
+        <div class="qbo-ih-tab-panel" data-tab-panel="config" role="tabpanel" hidden>
+          <section class="qbo-ih-section qbo-ih-config-section">
+            <p class="qbo-ih-config-intro">自定义选择器、规则与等待时间，保存后立即生效并记住。</p>
+            <div class="qbo-ih-config-fields" data-role="config-fields"></div>
+            <div class="qbo-ih-config-actions">
+              <button type="button" class="qbo-ih-btn qbo-ih-btn-primary" data-action="save-config">保存配置</button>
+              <button type="button" class="qbo-ih-btn" data-action="reset-config">恢复默认</button>
+            </div>
+            <p class="qbo-ih-config-status" data-role="config-status" hidden></p>
+          </section>
+        </div>
+      </div>
     `;
 
     document.documentElement.appendChild(panel);
@@ -169,8 +174,8 @@
         if (running) return;
         const id = btn.getAttribute("data-id");
         removeItem(id);
-      } else if (action === "toggle-config") {
-        toggleConfigBody(panel);
+      } else if (action === "switch-tab") {
+        switchTab(panel, btn.getAttribute("data-tab"));
       } else if (action === "save-config") {
         saveConfigFromPanel(panel);
       } else if (action === "reset-config") {
@@ -265,14 +270,20 @@
     render();
   }
 
-  function toggleConfigBody(panel) {
-    const body = panel.querySelector('[data-role="config-body"]');
-    const toggle = panel.querySelector('[data-action="toggle-config"]');
-    if (!body || !toggle) return;
-    const open = body.hidden;
-    body.hidden = !open;
-    toggle.setAttribute("aria-expanded", open ? "true" : "false");
-    toggle.classList.toggle("is-open", open);
+  function switchTab(panel, tabName) {
+    if (!tabName) return;
+    const tabs = panel.querySelectorAll(".qbo-ih-tab");
+    const panels = panel.querySelectorAll("[data-tab-panel]");
+    tabs.forEach((tab) => {
+      const active = tab.getAttribute("data-tab") === tabName;
+      tab.classList.toggle("is-active", active);
+      tab.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    panels.forEach((pane) => {
+      const active = pane.getAttribute("data-tab-panel") === tabName;
+      pane.classList.toggle("is-active", active);
+      pane.hidden = !active;
+    });
   }
 
   function buildConfigFieldsHtml(api, settings) {

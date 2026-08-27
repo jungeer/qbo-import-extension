@@ -69,7 +69,59 @@ html[data-qbo-import-helper="open"] {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 18px 16px 12px;
+  padding: 18px 16px 10px;
+}
+
+.qbo-ih-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 0 16px 8px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--qbo-ih-line);
+}
+
+.qbo-ih-tab {
+  height: 34px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--qbo-ih-muted);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.qbo-ih-tab.is-active {
+  background: #fff;
+  color: var(--qbo-ih-ink);
+  box-shadow: 0 1px 4px rgba(26, 46, 28, 0.08);
+}
+
+.qbo-ih-tab-panels {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.qbo-ih-tab-panel {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.qbo-ih-tab-panel.is-active {
+  display: flex;
+}
+
+.qbo-ih-tab-panel[data-tab-panel="config"] {
+  overflow: auto;
 }
 
 .qbo-ih-brand {
@@ -379,39 +431,8 @@ html[data-qbo-import-helper="open"] {
 }
 
 .qbo-ih-config-section {
-  border-top: 1px solid var(--qbo-ih-line);
-  padding-top: 10px;
-}
-
-.qbo-ih-config-toggle {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 36px;
-  padding: 0 10px;
-  border: 1px solid var(--qbo-ih-line);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.85);
-  color: var(--qbo-ih-ink);
-  font: inherit;
-  font-weight: 650;
-  cursor: pointer;
-}
-
-.qbo-ih-config-toggle.is-open .qbo-ih-config-chevron {
-  transform: rotate(180deg);
-}
-
-.qbo-ih-config-chevron {
-  transition: transform 0.2s ease;
-}
-
-.qbo-ih-config-body {
-  margin-top: 10px;
-  max-height: 42vh;
-  overflow: auto;
-  padding-right: 2px;
+  padding-top: 4px;
+  padding-bottom: 16px;
 }
 
 .qbo-ih-config-intro {
