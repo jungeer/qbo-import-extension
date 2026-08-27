@@ -94,20 +94,24 @@
     dom.assignFileToInput(fileInput, file);
 
     // 4) 等待 CSV 解析完成（可保存）
-    fx?.setStatus?.(`等待 CSV 解析 · ${file.name}`, "run");
+    // 有选择器则等选择器；否则固定等待 waitAfterImport（默认 10s）
     if (SELECTORS.readyToSaveIndicator) {
+      fx?.setStatus?.(`等待 CSV 解析 · ${file.name}`, "run");
       await dom.waitForElement(SELECTORS.readyToSaveIndicator, TIMEOUTS.waitAfterImport);
     } else {
-      await dom.waitForCsvParsed(TIMEOUTS.waitAfterImport);
+      const waitMs = TIMEOUTS.waitAfterImport || 10000;
+      fx?.setStatus?.(`等待解析 ${Math.round(waitMs / 1000)}s · ${file.name}`, "run");
+      await dom.sleep(waitMs);
     }
 
     // 5) 点击 Save 并等待完成
     const saveBtn = await dom.waitForElement(SELECTORS.saveButton, TIMEOUTS.waitForElement);
     await fx?.spotlight?.(saveBtn, `点击 Save · ${file.name}`);
     dom.clickElement(saveBtn);
-    fx?.setStatus?.(`等待保存完成 · ${file.name}`, "run");
 
+    // 有成功选择器则等选择器；否则固定等待 waitAfterSave（默认 6s）
     if (SELECTORS.saveSuccessIndicator) {
+      fx?.setStatus?.(`等待保存完成 · ${file.name}`, "run");
       await dom.waitForOutcome({
         successSelector: SELECTORS.saveSuccessIndicator,
         errorSelector: SELECTORS.errorIndicator || null,
@@ -115,22 +119,15 @@
         label: "保存",
       });
     } else {
-      const started = Date.now();
-      while (Date.now() - started < TIMEOUTS.waitAfterSave) {
-        if (SELECTORS.errorIndicator) {
-          const errEl = dom.query(SELECTORS.errorIndicator);
-          if (errEl && dom.isVisible(errEl)) {
-            const msg = (errEl.textContent || "").trim() || "保存失败（页面报错）";
-            throw new Error(msg);
-          }
+      const waitMs = TIMEOUTS.waitAfterSave || 6000;
+      fx?.setStatus?.(`等待保存 ${Math.round(waitMs / 1000)}s · ${file.name}`, "run");
+      await dom.sleep(waitMs);
+      if (SELECTORS.errorIndicator) {
+        const errEl = dom.query(SELECTORS.errorIndicator);
+        if (errEl && dom.isVisible(errEl)) {
+          const msg = (errEl.textContent || "").trim() || "保存失败（页面报错）";
+          throw new Error(msg);
         }
-        const layout = dom.query(SELECTORS.pageRoot || '[data-testid="txp-accounting-layout"]');
-        if (!layout || !dom.isVisible(layout)) break;
-        await dom.sleep(350);
-      }
-      const layout = dom.query(SELECTORS.pageRoot || '[data-testid="txp-accounting-layout"]');
-      if (layout && dom.isVisible(layout)) {
-        await dom.waitForSaveComplete(Math.max(5000, TIMEOUTS.waitAfterSave - (Date.now() - started)));
       }
     }
 

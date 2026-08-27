@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "QBO 批量导入助手",
-  "version": "0.1.1",
+  "version": "0.2.1",
   "description": "在 QuickBooks Online 页面右侧打开操作区，批量选择本地文件并逐个导入、保存。",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": ["<all_urls>"],

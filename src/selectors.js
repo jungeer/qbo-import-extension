@@ -16,11 +16,14 @@
     /** 若要用「Save and new」可改为此选择器 */
     saveAndNewButton: '[data-testid="txp-save-button"] button',
     /**
-     * CSV 解析完成、可点保存的参考：借贷合计不再为 0.00。
-     * 留空则走 waitForCsvParsed() 内置逻辑。
+     * CSV 解析完成、可点保存的选择器。
+     * 留空：固定等待 TIMEOUTS.waitAfterImport（默认 10s）。
      */
     readyToSaveIndicator: "",
-    /** 保存成功：弹层关闭。留空则走 waitForSaveComplete() 内置逻辑。 */
+    /**
+     * 保存成功提示选择器。
+     * 留空：固定等待 TIMEOUTS.waitAfterSave（默认 6s）。
+     */
     saveSuccessIndicator: "",
     /** 页面错误 toast/banner（待你补充具体选择器） */
     errorIndicator: '[role="alert"], .idsTSBanner, [data-testid*="error"]',
@@ -41,8 +44,10 @@
 
   root.TIMEOUTS = {
     waitForElement: 15000,
-    waitAfterImport: 60000,
-    waitAfterSave: 45000,
+    /** 无 readyToSaveIndicator 时：导入后固定等待 */
+    waitAfterImport: 10000,
+    /** 无 saveSuccessIndicator 时：保存后固定等待 */
+    waitAfterSave: 6000,
     betweenFiles: 1200,
     afterCurrencyChange: 600,
   };
