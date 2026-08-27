@@ -2,29 +2,14 @@
  * 注入右侧操作面板：选文件、列表状态、开始/停止导入、错误展示。
  */
 (() => {
-  if (globalThis.__QBO_IMPORT_PANEL_BOOTSTRAPPED__) {
-    return;
-  }
-  globalThis.__QBO_IMPORT_PANEL_BOOTSTRAPPED__ = true;
-
   const PANEL_ID = "qbo-import-helper-panel";
   const STYLE_ID = "qbo-import-helper-style";
   const HOST_ATTR = "data-qbo-import-helper";
 
-  /** @type {{ id: string, file: File, status: string, error?: string }[]} */
+  /** @type {{ id: string, file: File, status: string, error?: string, needsUsd?: boolean }[]} */
   let items = [];
   let running = false;
   let stopRequested = false;
-
-  if (globalThis.chrome?.runtime?.onMessage?.addListener) {
-    chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-      if (message?.type === "QBO_IMPORT_TOGGLE_PANEL") {
-        togglePanel();
-        sendResponse({ ok: true });
-      }
-      return false;
-    });
-  }
 
   function togglePanel() {
     const existing = document.getElementById(PANEL_ID);
@@ -37,6 +22,25 @@
       return;
     }
     mountPanel();
+  }
+
+  // 始终暴露 toggle，供 background / demo 调用（重复注入时也要可用）
+  globalThis.__QBO_IMPORT__ = globalThis.__QBO_IMPORT__ || {};
+  globalThis.__QBO_IMPORT__.togglePanel = togglePanel;
+
+  if (globalThis.__QBO_IMPORT_PANEL_BOOTSTRAPPED__) {
+    return;
+  }
+  globalThis.__QBO_IMPORT_PANEL_BOOTSTRAPPED__ = true;
+
+  if (globalThis.chrome?.runtime?.onMessage?.addListener) {
+    chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+      if (message?.type === "QBO_IMPORT_TOGGLE_PANEL") {
+        togglePanel();
+        sendResponse({ ok: true });
+      }
+      return false;
+    });
   }
 
   function ensureStyles() {
@@ -300,8 +304,4 @@
   function escapeAttr(str) {
     return escapeHtml(str).replace(/'/g, "&#39;");
   }
-
-  // 允许页面已打开时直接调用（例如 demo）
-  globalThis.__QBO_IMPORT__ = globalThis.__QBO_IMPORT__ || {};
-  globalThis.__QBO_IMPORT__.togglePanel = togglePanel;
 })();
