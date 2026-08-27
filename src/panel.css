@@ -123,6 +123,28 @@ html[data-qbo-import-helper="open"] {
   padding: 8px 16px 12px;
 }
 
+.qbo-ih-pick-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.qbo-ih-file-pick-note {
+  margin: 8px 0 0;
+  color: var(--qbo-ih-muted);
+  font-size: 12px;
+}
+
+.qbo-ih-folder-note {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(46, 125, 50, 0.08);
+  color: #1b5e20;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .qbo-ih-file-pick {
   display: grid;
   gap: 6px;

@@ -11,10 +11,11 @@
   const STYLE_ID = "qbo-import-helper-style";
   const HOST_ATTR = "data-qbo-import-helper";
 
-  /** @type {{ id: string, file: File, status: string, error?: string, needsUsd?: boolean }[]} */
+  /** @type {{ id: string, file: File, status: string, error?: string, needsUsd?: boolean, relativePath?: string }[]} */
   let items = [];
   let running = false;
   let stopRequested = false;
+  let folderNote = "";
 
   function togglePanel() {
     const existing = document.getElementById(PANEL_ID);
@@ -72,11 +73,19 @@
       </header>
 
       <section class="qbo-ih-section">
-        <label class="qbo-ih-file-pick">
-          <input type="file" multiple accept=".csv,text/csv" hidden data-role="file-input" />
-          <span class="qbo-ih-file-pick-btn">选择 CSV 文件</span>
-          <span class="qbo-ih-file-pick-hint">仅 CSV；文件名含 USD 会先切换币种再导入</span>
-        </label>
+        <div class="qbo-ih-pick-row">
+          <label class="qbo-ih-file-pick">
+            <input type="file" multiple accept=".csv,text/csv" hidden data-role="file-input" />
+            <span class="qbo-ih-file-pick-btn">选择 CSV 文件</span>
+            <span class="qbo-ih-file-pick-hint">可多选单个文件</span>
+          </label>
+          <label class="qbo-ih-file-pick">
+            <input type="file" multiple webkitdirectory directory hidden data-role="folder-input" />
+            <span class="qbo-ih-file-pick-btn">选择文件夹</span>
+            <span class="qbo-ih-file-pick-hint">自动列出文件夹内全部 CSV</span>
+          </label>
+        </div>
+        <p class="qbo-ih-file-pick-note">仅 CSV；文件名含 USD 会先切换币种再导入</p>
       </section>
 
       <section class="qbo-ih-section qbo-ih-list-section">
@@ -84,6 +93,7 @@
           <h2>文件列表</h2>
           <span data-role="count">0</span>
         </div>
+        <p class="qbo-ih-folder-note" data-role="folder-note" hidden></p>
         <ul class="qbo-ih-list" data-role="list"></ul>
         <p class="qbo-ih-empty" data-role="empty">尚未选择文件</p>
       </section>
@@ -119,6 +129,7 @@
 
   function bindPanel(panel) {
     const fileInput = panel.querySelector('[data-role="file-input"]');
+    const folderInput = panel.querySelector('[data-role="folder-input"]');
 
     panel.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-action]");
@@ -134,6 +145,7 @@
       } else if (action === "clear") {
         if (running) return;
         items = [];
+        folderNote = "";
         setError(null);
         render();
       }
@@ -141,32 +153,75 @@
 
     fileInput.addEventListener("change", () => {
       if (running) return;
-      const root = globalThis.__QBO_IMPORT__;
-      const allFiles = Array.from(fileInput.files || []);
-      const allowed = allFiles.filter((file) =>
-        root?.workflow?.isAllowedExtension
-          ? root.workflow.isAllowedExtension(file.name, root.RULES)
-          : /\.csv$/i.test(file.name)
-      );
-      const rejected = allFiles.length - allowed.length;
-
-      items = allowed.map((file, index) => ({
-        id: `${file.name}-${file.size}-${file.lastModified}-${index}`,
-        file,
-        status: "pending",
-        needsUsd: root?.workflow?.needsUsdCurrency
-          ? root.workflow.needsUsdCurrency(file.name, root.RULES)
-          : /USD/i.test(file.name),
-      }));
-
-      if (rejected > 0) {
-        setError(`已忽略 ${rejected} 个非 CSV 文件，仅导入 .csv`);
-      } else {
-        setError(null);
-      }
+      ingestFiles(Array.from(fileInput.files || []), { source: "files" });
       fileInput.value = "";
-      render();
     });
+
+    folderInput.addEventListener("change", () => {
+      if (running) return;
+      const allFiles = Array.from(folderInput.files || []);
+      ingestFiles(allFiles, { source: "folder" });
+      folderInput.value = "";
+    });
+  }
+
+  /**
+   * 统一处理选中的文件 / 文件夹内容：过滤 CSV、排序、写入列表。
+   */
+  function ingestFiles(allFiles, { source }) {
+    const root = globalThis.__QBO_IMPORT__;
+    const isCsv = (file) =>
+      root?.workflow?.isAllowedExtension
+        ? root.workflow.isAllowedExtension(file.name, root.RULES)
+        : /\.csv$/i.test(file.name);
+
+    // 文件夹选择会带回子目录内全部文件；按相对路径取叶子文件名过滤
+    const csvFiles = allFiles
+      .filter((file) => isCsv(file))
+      .sort((a, b) => {
+        const pa = a.webkitRelativePath || a.name;
+        const pb = b.webkitRelativePath || b.name;
+        return pa.localeCompare(pb, undefined, { numeric: true, sensitivity: "base" });
+      });
+
+    const rejected = allFiles.length - csvFiles.length;
+    const folderName =
+      source === "folder" && allFiles[0]?.webkitRelativePath
+        ? allFiles[0].webkitRelativePath.split("/")[0]
+        : "";
+
+    items = csvFiles.map((file, index) => ({
+      id: `${file.webkitRelativePath || file.name}-${file.size}-${file.lastModified}-${index}`,
+      file,
+      relativePath: file.webkitRelativePath || file.name,
+      status: "pending",
+      needsUsd: root?.workflow?.needsUsdCurrency
+        ? root.workflow.needsUsdCurrency(file.name, root.RULES)
+        : /USD/i.test(file.name),
+    }));
+
+    if (csvFiles.length === 0) {
+      folderNote = "";
+      setError(
+        source === "folder"
+          ? `文件夹${folderName ? `「${folderName}」` : ""}内没有找到 CSV 文件`
+          : "未选中任何 CSV 文件"
+      );
+    } else if (source === "folder") {
+      folderNote =
+        rejected > 0
+          ? `已从文件夹${folderName ? `「${folderName}」` : ""}载入 ${csvFiles.length} 个 CSV（忽略 ${rejected} 个其他文件）`
+          : `已从文件夹${folderName ? `「${folderName}」` : ""}载入 ${csvFiles.length} 个 CSV`;
+      setError(null);
+    } else if (rejected > 0) {
+      folderNote = "";
+      setError(`已忽略 ${rejected} 个非 CSV 文件，仅导入 .csv`);
+    } else {
+      folderNote = "";
+      setError(null);
+    }
+
+    render();
   }
 
   function statusLabel(status) {
@@ -191,34 +246,57 @@
     const list = panel.querySelector('[data-role="list"]');
     const empty = panel.querySelector('[data-role="empty"]');
     const count = panel.querySelector('[data-role="count"]');
+    const noteEl = panel.querySelector('[data-role="folder-note"]');
     const startBtn = panel.querySelector('[data-action="start"]');
     const stopBtn = panel.querySelector('[data-action="stop"]');
     const clearBtn = panel.querySelector('[data-action="clear"]');
-    const pick = panel.querySelector(".qbo-ih-file-pick");
+    const picks = panel.querySelectorAll(".qbo-ih-file-pick");
 
     count.textContent = String(items.length);
     empty.hidden = items.length > 0;
+
+    if (folderNote) {
+      noteEl.hidden = false;
+      noteEl.textContent = folderNote;
+    } else {
+      noteEl.hidden = true;
+      noteEl.textContent = "";
+    }
+
     list.innerHTML = items
-      .map(
-        (item) => `
+      .map((item) => {
+        const displayPath =
+          item.relativePath && item.relativePath !== item.file.name
+            ? item.relativePath
+            : item.file.name;
+        return `
       <li class="qbo-ih-item qbo-ih-item--${item.status}" data-id="${escapeAttr(item.id)}">
         <div class="qbo-ih-item-main">
-          <span class="qbo-ih-item-name" title="${escapeAttr(item.file.name)}">${escapeHtml(item.file.name)}</span>
+          <span class="qbo-ih-item-name" title="${escapeAttr(displayPath)}">${escapeHtml(item.file.name)}</span>
           <span class="qbo-ih-badge">${statusLabel(item.status)}</span>
         </div>
         <div class="qbo-ih-item-meta">${formatSize(item.file.size)} · CSV${
-          item.needsUsd ? ' · <span class="qbo-ih-tag-usd">先切 USD</span>' : ""
-        }${item.error ? ` · ${escapeHtml(item.error)}` : ""}</div>
-      </li>`
-      )
+          item.relativePath && item.relativePath.includes("/")
+            ? ` · ${escapeHtml(item.relativePath)}`
+            : ""
+        }${item.needsUsd ? ' · <span class="qbo-ih-tag-usd">先切 USD</span>' : ""}${
+          item.error ? ` · ${escapeHtml(item.error)}` : ""
+        }</div>
+      </li>`;
+      })
       .join("");
 
     startBtn.disabled = running || items.length === 0 || items.every((i) => i.status === "done");
     stopBtn.disabled = !running;
     clearBtn.disabled = running || items.length === 0;
-    pick.classList.toggle("is-disabled", running);
+    picks.forEach((pick) => {
+      pick.classList.toggle("is-disabled", running);
+    });
     panel.classList.toggle("is-running", running);
-    panel.querySelector('[data-role="file-input"]').disabled = running;
+    const fileInput = panel.querySelector('[data-role="file-input"]');
+    const folderInput = panel.querySelector('[data-role="folder-input"]');
+    if (fileInput) fileInput.disabled = running;
+    if (folderInput) folderInput.disabled = running;
 
     const active = panel.querySelector(".qbo-ih-item--importing");
     if (active) active.scrollIntoView({ block: "nearest", behavior: "smooth" });
