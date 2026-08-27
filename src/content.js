@@ -148,6 +148,10 @@
         folderNote = "";
         setError(null);
         render();
+      } else if (action === "remove") {
+        if (running) return;
+        const id = btn.getAttribute("data-id");
+        removeItem(id);
       }
     });
 
@@ -224,6 +228,20 @@
     render();
   }
 
+  function removeItem(id) {
+    if (!id || running) return;
+    const target = items.find((item) => item.id === id);
+    if (!target) return;
+    if (target.status === "importing") return;
+
+    items = items.filter((item) => item.id !== id);
+    if (items.length === 0) {
+      folderNote = "";
+      setError(null);
+    }
+    render();
+  }
+
   function statusLabel(status) {
     switch (status) {
       case "pending":
@@ -273,7 +291,18 @@
       <li class="qbo-ih-item qbo-ih-item--${item.status}" data-id="${escapeAttr(item.id)}">
         <div class="qbo-ih-item-main">
           <span class="qbo-ih-item-name" title="${escapeAttr(displayPath)}">${escapeHtml(item.file.name)}</span>
-          <span class="qbo-ih-badge">${statusLabel(item.status)}</span>
+          <div class="qbo-ih-item-tools">
+            <span class="qbo-ih-badge">${statusLabel(item.status)}</span>
+            <button
+              type="button"
+              class="qbo-ih-remove-btn"
+              data-action="remove"
+              data-id="${escapeAttr(item.id)}"
+              aria-label="删除 ${escapeAttr(item.file.name)}"
+              title="从列表删除"
+              ${running || item.status === "importing" ? "disabled" : ""}
+            >删除</button>
+          </div>
         </div>
         <div class="qbo-ih-item-meta">${formatSize(item.file.size)} · CSV${
           item.relativePath && item.relativePath.includes("/")
